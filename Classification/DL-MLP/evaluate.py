@@ -1,32 +1,34 @@
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report
 import pandas as pd
 
-# classified_data
-classified_data = pd.read_csv("classified_data.csv")
-Y_true_classified = classified_data['Class']
-Y_pred_classified = classified_data['Predict']
-total_classified_data = len(classified_data)
+def getClassificationReport(data):
+    return classification_report(data['Class'], data['Predict'])
 
-print("=== Classified Data Report ===")
-print(classification_report(Y_true_classified, Y_pred_classified))
+def unclassifiedRate(all_data,unclassified_data):
+    return len(unclassified_data)/len(all_data)
 
-# print("=== Confusion Matrix ===")
-# print(confusion_matrix(Y_true_classified, Y_pred_classified))
+def NDIUD(unclassified_data):
+    # new data in unclassified data
+    missing_in_train = ['BARBUNYA', 'BOMBAY']
+    new_class_count = unclassified_data['Class'].isin(missing_in_train).sum()
+    total_unclassified = len(unclassified_data)
+    return new_class_count/total_unclassified
 
+def printAllResult(all_data,classified_data,unclassified_data):
+    print("=== Classified Data Report ===")
+    print(getClassificationReport(classified_data))
+    print("=== All Data Report ===")
+    print(getClassificationReport(all_data))
+    print("=== unclassified data rate ===")
+    print(unclassifiedRate(all_data,unclassified_data))
+    print("=== new data in unclassified data ===")
+    print(NDIUD(unclassified_data))
+    print("=== new data in unclassified data * unclassified data rate ===")
+    print(NDIUD(unclassified_data)*unclassifiedRate(all_data,unclassified_data))
 
-# unclassified_data
-train_set = pd.read_csv("dry_bean_train.csv")
-test_set = pd.read_csv("dry_bean_test.csv")
-train_classes = set(train_set['Class'].unique())
-test_classes = set(test_set['Class'].unique())
-missing_in_train = test_classes - train_classes
-
-unclassified_data = pd.read_csv("unclassified_data.csv")
-new_class_count = unclassified_data['Class'].isin(missing_in_train).sum()
-total_unclassified = len(unclassified_data)
-
-print("=== unclassified data rate ===")
-print(total_unclassified / (total_classified_data+total_unclassified) * 100)
-print("=== new data in unclassified data ===")
-print(missing_in_train)
-print(new_class_count / total_unclassified * 100)
+if __name__=="__main__":
+    classified_data = pd.read_csv("classified_data.csv")
+    unclassified_data = pd.read_csv("unclassified_data.csv")
+    all_data = pd.concat([classified_data, unclassified_data], axis=0, ignore_index=True)
+    
+    printAllResult(all_data,classified_data,unclassified_data)

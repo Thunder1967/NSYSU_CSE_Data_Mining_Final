@@ -1,0 +1,4 @@
+1. 標籤平滑: criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+2. 調高 threshold
+3. 溫度縮放: test_probabilities = torch.softmax(test_outputs / T, dim=1).numpy()
+4. 蒙特卡羅 Dropout
