@@ -1,4 +1,4 @@
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report
 import pandas as pd
 
 # classified_data
@@ -9,9 +9,6 @@ total_classified_data = len(classified_data)
 
 print("=== Classified Data Report ===")
 print(classification_report(Y_true_classified, Y_pred_classified))
-
-# print("=== Confusion Matrix ===")
-# print(confusion_matrix(Y_true_classified, Y_pred_classified))
 
 
 # unclassified_data
