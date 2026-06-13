@@ -1,10 +1,33 @@
-import testMLP
+import normal_model
+import DOC_model
+import normal_model_with_IsolationForest
+import CRF_model
 import evaluate
 
+def case1():
+    model = normal_model.normal_model_package(from_file="Classification\\DL-MLP\\normal_model.pth")
+    model.load_test_data()
+    all_data,classified_data,unclassified_data = model.testingMCDropout()
+    evaluate.printAllResult(all_data,classified_data,unclassified_data)
+
+def case2():
+    model = DOC_model.DOC_model_package(from_file="Classification\\DL-MLP\\DOC_model.pth")
+    model.load_test_data()
+    all_data,classified_data,unclassified_data = model.testingDOC()
+    evaluate.printAllResult(all_data,classified_data,unclassified_data)
+
+def case3():
+    model = normal_model_with_IsolationForest.mix_model_package(from_file="Classification\\DL-MLP\\mix_model.pth")
+    model.load_test_data()
+    all_data,classified_data,unclassified_data = model.testingEnergy()
+    evaluate.printAllResult(all_data,classified_data,unclassified_data)
+
+def case4():
+    model = CRF_model.CRF_model_package(from_file="Classification\\DL-MLP\\CRF_model.pth")
+    model.load_test_data()
+    all_data,classified_data,unclassified_data = model.testingEnergy()
+    evaluate.printAllResult(all_data,classified_data,unclassified_data)
+
 if __name__=="__main__":
-    network,class_mapping,X_test_tensor,test_set = testMLP.readData()
-    test_probabilities = testMLP.testingMCDropout(network,X_test_tensor,times=10)
-    test_results = testMLP.combineResult(test_set,class_mapping,test_probabilities)
-    classified_data,unclassified_data = testMLP.classifiableOrNot(test_results,trust_threshold=0.8)
-    
-    evaluate.printAllResult(test_results,classified_data,unclassified_data)
+    # normal_model_with_IsolationForest.mix_model_package().saveModelPackage()
+    case3()
