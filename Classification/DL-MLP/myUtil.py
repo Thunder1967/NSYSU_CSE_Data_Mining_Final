@@ -21,7 +21,8 @@ def preprocess(file_name="dry_bean_train.csv"):
 
     return X_train_tensor,Y_train_tensor,scaler,class_mapping
 
-def outputResultToFile(classifiable_data,unclassifiable_data):
+def outputResultToFile(all_data,classifiable_data,unclassifiable_data):
+    all_data.to_csv("classification_result.csv", index=False)
     classifiable_data.to_csv("classified_data.csv", index=False)
     unclassifiable_data.to_csv("unclassified_data.csv", index=False)
     print("success")

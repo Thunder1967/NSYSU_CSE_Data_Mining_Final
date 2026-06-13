@@ -3,6 +3,7 @@ import torch.optim as optim
 import torch
 import myUtil
 import pandas as pd
+from sklearn.ensemble import IsolationForest
 
 class normal_model(nn.Module):  
     def __init__(self):  
@@ -33,13 +34,13 @@ class normal_model(nn.Module):
     def forward(self, x):  
         return self.network(x)
 
-class normal_model_package():
+class mix_model_package():
     def __init__(self,from_file="",label_smoothing=0.15,lr=0.005,cycles=100) -> None:
         self.network = normal_model()
         if from_file=="":
             X_train_tensor,Y_train_tensor,self.scaler,self.class_mapping = myUtil.preprocess()
             
-            # training
+            # training - MLP
             # cost function
             criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)  
             # optimize newwork weight & Learning Rate=0.005
@@ -58,12 +59,17 @@ class normal_model_package():
                 loss.backward()
                 # update weight
                 optimizer.step()
+
+            # train IsolationForest
+            self.iso_forest = IsolationForest(contamination=0.01, random_state=67, n_jobs=-1)
+            self.iso_forest.fit(X_train_tensor.numpy())
         else:
             # read model package
             model_package = torch.load(from_file,weights_only=False)
             self.network.load_state_dict(model_package["model_state_dict"])
             self.scaler = model_package["scaler"]
             self.class_mapping = model_package['class_mapping']
+            self.iso_forest = model_package['iso_forest']
 
     def load_test_data(self,file_name="dry_bean_test.csv"):
         # test set preprocess
@@ -113,8 +119,12 @@ class normal_model_package():
         inv_class_mapping = {v: k for k, v in self.class_mapping.items()}  
         test_results['Predict'] = [inv_class_mapping[idx] for idx in predicted_idx]
 
+        # introduce isolation forest
+        anomaly_predictions = self.iso_forest.predict(self.X_test_tensor.numpy())
+
         # classified data
-        classified_data_mask = test_results['Trust_index'] >= threshold  
+        # check two model 
+        classified_data_mask = (test_results['Trust_index'] >= threshold) & (anomaly_predictions == 1)
         classified_data = test_results[classified_data_mask].copy()
         classified_data = classified_data.drop(columns=['Trust_index'])
 
@@ -143,7 +153,9 @@ class normal_model_package():
         inv_class_mapping = {v: k for k, v in self.class_mapping.items()}  
         test_results['Predict'] = [inv_class_mapping[idx] for idx in predicted_idx]
 
-        classified_data_mask = test_results['Energy_Score'] < threshold
+        # introduce isolation forest
+        anomaly_predictions = self.iso_forest.predict(self.X_test_tensor.numpy())
+        classified_data_mask = (test_results['Energy_Score'] < threshold) & (anomaly_predictions == 1)
 
         classified_data = test_results[classified_data_mask].copy()
         classified_data = classified_data.drop(columns=['Energy_Score'])
@@ -151,12 +163,13 @@ class normal_model_package():
         unclassified_data = unclassified_data.drop(columns=['Energy_Score','Predict'])
         return test_results,classified_data,unclassified_data
 
-    def saveModelPackage(self,file_name="Classification\\DL-MLP\\normal_model.pth"):
+    def saveModelPackage(self,file_name="Classification\\DL-MLP\\mix_model.pth"):
         # save overall model in file
         model_package = {
             'model_state_dict': self.network.state_dict(),
             'scaler': self.scaler,
-            'class_mapping': self.class_mapping
+            'class_mapping': self.class_mapping,
+            'iso_forest': self.iso_forest
         }
         torch.save(model_package,file_name)
         print("success")
@@ -164,4 +177,4 @@ class normal_model_package():
 
     
 if __name__=="__main__":
-    normal_model_package().saveModelPackage()
+    mix_model_package().saveModelPackage()
