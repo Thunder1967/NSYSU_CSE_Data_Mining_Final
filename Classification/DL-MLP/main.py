@@ -36,7 +36,7 @@ def case4():
 def case5():
     model = CRF_model.CRF_model_package(from_file="Classification\\DL-MLP\\CRF_model.pth")
     model.load_test_data()
-    all_data,classified_data,unclassified_data = model.testingMCDropout(cycles=23, threshold=0.736)
+    all_data,classified_data,unclassified_data = model.testingMCDropout(cycles=13, threshold=0.7598985455458621)
     evaluate.printAllResult(all_data,classified_data,unclassified_data)
     return all_data,classified_data,unclassified_data
 
