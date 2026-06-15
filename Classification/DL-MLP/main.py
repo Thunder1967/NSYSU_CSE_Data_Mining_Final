@@ -44,20 +44,25 @@ def case6():
     # 使用 Optuna 找出的最佳訓練參數，直接重新訓練一個終極模型
     model = CRF_model.CRF_model_package(
         from_file="",
-        lr=0.0026822027285217983,
-        cycles=63,
-        label_smoothing=0.07568634172575536,
-        reconstruct_weight=0.44976661562055753
+        lr=0.0032544716701542937,
+        cycles=52,
+        label_smoothing=0.16369619152356668,
+        reconstruct_weight=0.25849666161387097
     )
     # 儲存這個終極模型
     model.saveModelPackage("Classification\\DL-MLP\\best_CRF_model.pth")
     model.load_test_data()
     
     # 使用最佳推論參數
-    all_data,classified_data,unclassified_data = model.testingMCDropout(cycles=28, threshold=0.6551976059164604)
+    all_data,classified_data,unclassified_data = model.testingMCDropout(cycles=24, threshold=0.6218427239525507)
     evaluate.printAllResult(all_data,classified_data,unclassified_data)
     return all_data,classified_data,unclassified_data
 
 if __name__=="__main__":
     # normal_model_with_IsolationForest.mix_model_package().saveModelPackage()
+    myUtil.outputResultToFile(*case1())
+    myUtil.outputResultToFile(*case2())
+    myUtil.outputResultToFile(*case3())
     myUtil.outputResultToFile(*case4())
+    myUtil.outputResultToFile(*case5())
+    myUtil.outputResultToFile(*case6())
