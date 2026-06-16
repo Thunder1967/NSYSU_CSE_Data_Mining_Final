@@ -8,7 +8,7 @@ import myUtil
 def case1():
     model = normal_model.normal_model_package(from_file="Classification\\DL-MLP\\normal_model.pth")
     model.load_test_data()
-    all_data,classified_data,unclassified_data = model.testingEnergy(threshold=-2.0,T=1)
+    all_data,classified_data,unclassified_data = model.testingMCDropout()
     evaluate.printAllResult(all_data,classified_data,unclassified_data)
     return all_data,classified_data,unclassified_data
 
