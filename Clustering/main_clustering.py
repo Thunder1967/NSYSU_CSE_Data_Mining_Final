@@ -10,6 +10,7 @@ from sklearn.metrics import silhouette_score
 
 # 引入你自己手刻的分群模型 (假設檔案名稱為 kmeans_model.py)
 import kmeans_model 
+import dbscan_model
 
 def analyze_features(df, feature_cols):
     """
@@ -63,12 +64,19 @@ def main():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # 3. 使用你手刻的 K-Means 模型！
-    n_clusters = 2
-    print(f"\n🚀 正在執行手刻 K-Means 分群 (K={n_clusters})...")
-    kmeans = kmeans_model.KMeans_model(n_clusters=n_clusters, random_state=42)
-    cluster_labels = kmeans.fit_predict(X_scaled)
+    # # 3. 使用你手刻的 K-Means 模型！
+    # n_clusters = 2
+    # print(f"\n🚀 正在執行手刻 K-Means 分群 (K={n_clusters})...")
+    # kmeans = kmeans_model.KMeans_model(n_clusters=n_clusters, random_state=42)
+    # cluster_labels = kmeans.fit_predict(X_scaled)
     
+    # 3. 使用你手刻的 DBSCAN 模型！
+    print("\n🚀 正在執行手刻 DBSCAN 分群...")
+    # 乾豆特徵經過標準化後，eps=0.5, min_samples=5 是很適合的初始值
+    dbscan = dbscan_model.DBSCAN_model(eps=1.2, min_samples=5)
+    cluster_labels = dbscan.fit_predict(X_scaled)
+
+
     # 將結果存回 DataFrame
     df['Cluster_Label'] = cluster_labels
     

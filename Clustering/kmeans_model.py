@@ -14,7 +14,7 @@ class KMeans_model:
             X = X.values
         np.random.seed(self.random_state)
         
-        # 1. 初始化：隨機從資料點中抽出 n_clusters 個點作為初始中心
+        # 隨機從資料點中抽出 n_clusters 個點作為初始中心
         random_indices = np.random.choice(X.shape[0], self.n_clusters, replace=False)
         self.centroids = X[random_indices]
 
