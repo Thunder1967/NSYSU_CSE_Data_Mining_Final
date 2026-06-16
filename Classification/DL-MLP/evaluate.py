@@ -33,5 +33,5 @@ def printAllResult(all_data,classified_data,unclassified_data):
     print(a:=newClassPrecision(unclassified_data))
     print("=== new Class Recall  ===")
     print(b:=newClassRecall(all_data,unclassified_data))
-    print("=== F1-score  ===")
+    print("=== new class F1-score  ===")
     print(2*(a*b)/(a+b))
