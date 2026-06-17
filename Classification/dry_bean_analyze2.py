@@ -17,7 +17,7 @@ def analyze_individual_features():
     df_all = pd.concat([train_set, test_set], axis=0).reset_index(drop=True)
 
     # 2. 篩選目標品種
-    target_classes = ['BARBUNYA', 'CALI', 'SIRA', 'BOMBAY']
+    target_classes = ['BARBUNYA', 'CALI', 'BOMBAY']
     df_filtered = df_all[df_all['Class'].isin(target_classes)].copy()
     
     # 提取 16 項特徵
@@ -31,7 +31,7 @@ def analyze_individual_features():
     axes = axes.flatten()
 
     # 為四個品種指定固定顏色（與前面保持一致，方便對照）
-    palette = {'BARBUNYA': '#3498db', 'CALI': '#2ecc71', 'SIRA': '#e67e22', 'BOMBAY': '#9b59b6'}
+    palette = {'BARBUNYA': '#3498db', 'CALI': '#2ecc71', 'BOMBAY': '#9b59b6'}
 
     print("🎨 正在為 16 項特徵各自生成品種關係分佈圖...")
     

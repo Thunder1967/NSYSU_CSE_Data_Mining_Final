@@ -35,7 +35,7 @@ class DOC_model(nn.Module):
         return self.network(x)
 
 class DOC_model_package():
-    def __init__(self,from_file="",label_smoothing=0.15,lr=0.005,cycles=100) -> None:
+    def __init__(self,from_file="",lr=0.005,cycles=100,min_thresholds=0.5,std_multiplier=1.5) -> None:
         self.network = DOC_model()
         if from_file=="":
             X_train_tensor,Y_train_tensor,self.scaler,self.class_mapping = myUtil.preprocess()
@@ -62,8 +62,7 @@ class DOC_model_package():
                 # update weight
                 optimizer.step()
 
-            #     
-            self.thresholds = self._calculate_doc_thresholds(X_train_tensor, Y_train_tensor, num_classes)
+            self.thresholds = self._calculate_doc_thresholds(X_train_tensor, Y_train_tensor, num_classes,min_thresholds,std_multiplier)
         else:
             # read model package
             model_package = torch.load(from_file,weights_only=False)
@@ -72,7 +71,7 @@ class DOC_model_package():
             self.class_mapping = model_package['class_mapping']
             self.thresholds = model_package['thresholds']
 
-    def _calculate_doc_thresholds(self, X_train, Y_train, num_classes):
+    def _calculate_doc_thresholds(self, X_train, Y_train, num_classes,min_thresholds,std_multiplier):
         """
         Calculate a specific threshold for each known category.
         Using the training set samples, calculate the average and standard 
@@ -91,7 +90,7 @@ class DOC_model_package():
             # find all c class sample
             idx = np.where(Y_train_np == c)[0]
             if len(idx) == 0:
-                thresholds[c] = 0.5 # if c not exist
+                thresholds[c] = min_thresholds # if c not exist
                 continue
             
             # sample proba in model
@@ -101,7 +100,7 @@ class DOC_model_package():
             sigma = np.std(c_probs)
             
             # set threshold
-            thresholds[c] = max(0.5, mu - 2 * sigma)
+            thresholds[c] = max(min_thresholds, mu - std_multiplier * sigma)
             print(thresholds[c])
             
         return thresholds
