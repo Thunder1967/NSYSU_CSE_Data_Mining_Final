@@ -5,7 +5,7 @@ import seaborn as sns
 
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.decomposition import PCA
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, adjusted_rand_score
 
 import kmeans_model
 import dbscan_model
@@ -15,6 +15,17 @@ def analyze_features(df, feature_cols, label_col, model_name):
     特徵化分析：計算並比較各群集的特徵平均值
     """
     print(f"\n=== {model_name} 特徵化分析結果 ===")
+    
+    # 計算並印出每一群有幾顆豆子
+    cluster_counts = df[label_col].value_counts().sort_index()
+    print(" 各群集資料筆數 (Cluster Sizes):")
+    for cluster_id, count in cluster_counts.items():
+        if cluster_id == -1:
+            print(f"  Cluster {cluster_id} (雜訊/Noise): {count} 顆")
+        else:
+            print(f"  Cluster {cluster_id}: {count} 顆")
+    print("-" * 40)
+    
     cluster_means = df.groupby(label_col)[feature_cols].mean()
     
     # 挑選幾個最具代表性的特徵印出來比較
@@ -72,7 +83,9 @@ def main():
     df['Cluster_KMeans'] = labels_km
     
     sil_score_km = silhouette_score(X_scaled_km, labels_km)
+    ari_km = adjusted_rand_score(df['Class'], labels_km)
     print(f" - 輪廓係數 (Silhouette Score): {sil_score_km:.4f}")
+    print(f" - ARI 分數 (Adjusted Rand Index): {ari_km:.4f}")
     
     analyze_features(df, feature_cols, 'Cluster_KMeans', 'K-Means')
     plot_pca_clusters(X_scaled_km, labels_km, 'PCA Projection (Custom K-Means)', 'Clustering/cluster_pca_kmeans.png')
@@ -101,6 +114,9 @@ def main():
         print(f" - 輪廓係數 (Silhouette Score): {sil_score_db:.4f}")
     else:
         print(" - 輪廓係數 (Silhouette Score): 無法計算 (全為同一群或全為雜訊)")
+        
+    ari_db = adjusted_rand_score(df['Class'], labels_db)
+    print(f" - ARI 分數 (Adjusted Rand Index): {ari_db:.4f}")
 
     analyze_features(df, feature_cols, 'Cluster_DBSCAN', 'DBSCAN')
     plot_pca_clusters(X_processed_db, labels_db, 'PCA Projection (Custom DBSCAN)', 'Clustering/cluster_pca_dbscan.png')
