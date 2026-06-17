@@ -4,9 +4,25 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+
+# --- 合法化防線：自動切分驗證集 ---
+if not os.path.exists("dry_bean_train_sub.csv") or not os.path.exists("val_split.csv"):
+    df_train = pd.read_csv("dry_bean_train.csv")
+    train_sub, val_split = train_test_split(df_train, test_size=0.2, stratify=df_train['Class'], random_state=42)
+    train_sub.to_csv("dry_bean_train_sub.csv", index=False)
+    val_split.to_csv("val_split.csv", index=False)
 
 # 將 DL-MLP 加入路徑以匯入模型 (不改動原檔案)
 sys.path.append(os.path.abspath("Classification/DL-MLP"))
+import myUtil
+
+# --- 核心魔法：Monkey Patching 攔截訓練資料 ---
+original_preprocess = myUtil.preprocess
+def patched_preprocess(file_name="dry_bean_train_sub.csv"):
+    return original_preprocess(file_name=file_name)
+myUtil.preprocess = patched_preprocess
+
 import normal_model
 import CRF_model
 import normal_model_with_IsolationForest
@@ -17,19 +33,10 @@ def calculate_score(all_data, classified_data, unclassified_data):
         return 0.0
 
     # 1. Classified Accuracy
+    # (由於驗證集中不包含未知品種，此階段直接最大化已知品種的 Accuracy)
     acc = accuracy_score(classified_data['Class'], classified_data['Predict'])
     
-    # 2. OOD F1-score
-    p = evaluate.newClassPrecision(unclassified_data)
-    r = evaluate.newClassRecall(all_data, unclassified_data)
-    
-    f1 = 0.0
-    if p > 0 and r > 0:
-        f1 = 2 * (p * r) / (p + r)
-        
-    # Combined score
-    combined_score = 0.5 * acc + 0.5 * f1
-    return combined_score
+    return acc
 
 def objective(trial):
     # --- 1. 訓練參數 (Training Parameters) ---
@@ -43,7 +50,7 @@ def objective(trial):
         model = CRF_model.CRF_model_package(
             from_file="", lr=lr, cycles=cycles, label_smoothing=label_smoothing, reconstruct_weight=reconstruct_weight
         )
-        model.load_test_data()
+        model.load_test_data(file_name="val_split.csv")
     except Exception as e:
         return 0.0
 
@@ -61,7 +68,7 @@ def objective(trial):
     return score
 
 if __name__ == "__main__":
-    num_trials = 100 
+    num_trials = 30 
     
     print(f"Starting Multi-Model Training-Inference Joint Optimization for {num_trials} trials...")
     print("This will train new models from scratch in every trial, which may take significant time.")
@@ -71,7 +78,7 @@ if __name__ == "__main__":
     
     print("\n" + "="*40)
     print("Optimization finished.")
-    print("Best combined score: ", study.best_value)
+    print("Best validation accuracy: ", study.best_value)
     print("Best parameters: ", study.best_params)
     
     # 儲存調參過程

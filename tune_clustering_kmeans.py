@@ -5,7 +5,7 @@ import numpy as np
 import optuna
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
-from sklearn.metrics import adjusted_rand_score
+from sklearn.metrics import silhouette_score
 
 # 將 Clustering 目錄加到 sys.path 方便載入你們手刻的 kmeans_model
 sys.path.append(os.path.join(os.path.dirname(__file__), 'Clustering'))
@@ -44,7 +44,7 @@ def objective(trial):
     # ===============================
     # 2. 手刻 K-Means 模型參數搜尋
     # ===============================
-    n_clusters = trial.suggest_int("n_clusters", 2, 4)
+    n_clusters = trial.suggest_int("n_clusters", 4, 10)
     max_iters = trial.suggest_int("max_iters", 100, 1000)
     tol = trial.suggest_float("tol", 1e-5, 1e-2, log=True)
     random_state = trial.suggest_int("random_state", 0, 1000)
@@ -61,13 +61,15 @@ def objective(trial):
     cluster_labels = kmeans.fit_predict(X_processed)
     
     # ===============================
-    # 3. 給分 (Adjusted Rand Index)
+    # 3. 給分 (Silhouette Score)
     # ===============================
-    # ARI 能精準比較「你們分出來的群」和「真實答案(Class)」的重疊度
-    # 1.0 是完美切割，0 則是跟隨機亂猜一樣
-    ari_score = adjusted_rand_score(true_labels, cluster_labels)
+    # Silhouette Score 是內部指標，完全不需看真實解答
+    try:
+        score = silhouette_score(X_processed, cluster_labels)
+    except:
+        score = -1
     
-    return ari_score
+    return score
 
 if __name__ == "__main__":
     print("Starting Optuna Bayesian Optimization: searching for the best clustering and preprocessing parameters...")
@@ -77,7 +79,7 @@ if __name__ == "__main__":
     
     study.trials_dataframe().to_csv("optuna_clustering_results.csv", index=False)
     print("\n=== Best Clustering Parameters ===")
-    print(f"Best Score (Adjusted Rand Index): {study.best_value:.4f}")
+    print(f"Best Score (Silhouette Score): {study.best_value:.4f}")
     print("Best Parameter Combination:")
     for key, value in study.best_params.items():
         print(f"  {key}: {value}")

@@ -5,7 +5,7 @@ import numpy as np
 import optuna
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
-from sklearn.metrics import adjusted_rand_score
+from sklearn.metrics import silhouette_score
 
 # 將 Clustering 目錄加到 sys.path 方便載入你們手刻的 dbscan_model
 sys.path.append(os.path.join(os.path.dirname(__file__), 'Clustering'))
@@ -57,13 +57,20 @@ def objective(trial):
     cluster_labels = dbscan.fit_predict(X_processed)
     
     # ===============================
-    # 3. 給分 (Adjusted Rand Index)
+    # 3. 給分 (Silhouette Score)
     # ===============================
-    # 如果全部分成同一類或是全部都是雜訊，ARI 會接近 0
-    # ARI 能精準評估 DBSCAN 找出的聚落跟真實品種的吻合度
-    ari_score = adjusted_rand_score(true_labels, cluster_labels)
+    # 如果全部分成同一類或是全部都是雜訊，給予極低分
+    try:
+        unique_labels = set(cluster_labels)
+        if len(unique_labels) > 1 and not (len(unique_labels) == 2 and -1 in unique_labels):
+            # 確保有至少兩群 (不含雜訊) 才算輪廓係數，避免作弊
+            score = silhouette_score(X_processed, cluster_labels)
+        else:
+            score = -1
+    except:
+        score = -1
     
-    return ari_score
+    return score
 
 if __name__ == "__main__":
     print("Starting Optuna Bayesian Optimization for DBSCAN...")
@@ -73,7 +80,7 @@ if __name__ == "__main__":
     
     study.trials_dataframe().to_csv("optuna_dbscan_results.csv", index=False)
     print("\n=== Best DBSCAN Parameters ===")
-    print(f"Best Score (Adjusted Rand Index): {study.best_value:.4f}")
+    print(f"Best Score (Silhouette Score): {study.best_value:.4f}")
     print("Best Parameter Combination:")
     for key, value in study.best_params.items():
         print(f"  {key}: {value}")

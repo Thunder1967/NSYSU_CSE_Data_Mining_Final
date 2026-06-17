@@ -20,7 +20,7 @@ def main():
         return
 
     # 3. 處理分群標籤 (這裡我們選用表現最好的 K-Means 分群結果)
-    # 假設 K-Means 分了 4 群，我們將其重新命名為 New_Species_1, 2... 等
+    # 假設 K-Means 分了 5 群，我們將其重新命名為 New_Species_1, 2... 等
     # 這樣才能跟原本的 SEKER, DERMASON 等字串標籤格式統一
     df_clustered['Final_Predict'] = df_clustered['Cluster_KMeans'].apply(lambda x: f"New_Species_{x}")
     

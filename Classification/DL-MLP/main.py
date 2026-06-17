@@ -44,17 +44,17 @@ def case6():
     # 使用 Optuna 找出的最佳訓練參數，直接重新訓練一個終極模型
     model = CRF_model.CRF_model_package(
         from_file="",
-        lr=0.0032544716701542937,
-        cycles=52,
-        label_smoothing=0.16369619152356668,
-        reconstruct_weight=0.25849666161387097
+        lr=0.0011931312052940067,
+        cycles=155,
+        label_smoothing=0.24277650459040429,
+        reconstruct_weight=0.40184393615755254
     )
     # 儲存這個終極模型
     model.saveModelPackage("Classification\\DL-MLP\\best_CRF_model.pth")
     model.load_test_data()
     
     # 使用最佳推論參數
-    all_data,classified_data,unclassified_data = model.testingMCDropout(cycles=24, threshold=0.6218427239525507)
+    all_data,classified_data,unclassified_data = model.testingMCDropout(cycles=16, threshold=0.8157436427266658)
     evaluate.printAllResult(all_data,classified_data,unclassified_data)
     return all_data,classified_data,unclassified_data
 
