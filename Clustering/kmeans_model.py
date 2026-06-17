@@ -34,7 +34,7 @@ class KMeans_model:
             self.centroids[i] = X[next_index]
             
         for i in range(self.max_iters):
-            # 計算距離與分派
+            # 計算距離
             distances = np.linalg.norm(X[:, np.newaxis] - self.centroids, axis=2)
             
             # 找出每個點距離最近的群中心索引
