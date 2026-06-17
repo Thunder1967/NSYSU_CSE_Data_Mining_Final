@@ -14,10 +14,25 @@ class KMeans_model:
             X = X.values
         np.random.seed(self.random_state)
         
-        # 隨機從資料點中抽出 n_clusters 個點作為初始中心
-        random_indices = np.random.choice(X.shape[0], self.n_clusters, replace=False)
-        self.centroids = X[random_indices]
-
+        self.centroids = np.zeros((self.n_clusters, X.shape[1]))
+        
+        # 隨機挑選「第 1 個」群集中心
+        first_index = np.random.choice(X.shape[0])
+        self.centroids[0] = X[first_index]
+        
+        # 挑選剩下的 K-1 個中心點
+        for i in range(1, self.n_clusters):
+    
+            distances = np.linalg.norm(X[:, np.newaxis] - self.centroids[:i], axis=2)
+            min_distances = np.min(distances, axis=1)
+            
+           
+            probs = min_distances ** 2
+            probs = probs / np.sum(probs) 
+        
+            next_index = np.random.choice(X.shape[0], p=probs)
+            self.centroids[i] = X[next_index]
+            
         for i in range(self.max_iters):
             # 計算距離與分派
             distances = np.linalg.norm(X[:, np.newaxis] - self.centroids, axis=2)
